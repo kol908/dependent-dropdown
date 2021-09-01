@@ -1,0 +1,6 @@
+name: Dependent Dropdown
+type: module
+description: 'Dependent dropdown using Rest API'
+package: custom module
+core_version_requirement: ^8 || ^9
+configure: dependent_dropdown.all_content_types

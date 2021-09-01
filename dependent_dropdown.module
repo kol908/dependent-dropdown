@@ -1,0 +1,545 @@
+<?php
+
+use Drupal\Core\Ajax\AjaxResponse;
+use Drupal\Core\Ajax\HtmlCommand;
+use Drupal\Core\Form\FormStateInterface;
+use Drupal\Component\Serialization\Json;
+use Drupal\Core\Url;
+
+/**
+ * Implements hook_form_alter().
+ */
+function dependent_dropdown_form_alter(&$form, FormStateInterface $form_state, $form_id) {
+
+  $dependent_dropdown_elements = \Drupal::config('dependent_dropdown.elements')->get('dependent_dropdown_elements');
+
+  // Add fields to content type forms via hook form alter.
+  if (isset($dependent_dropdown_elements)) {
+
+    $newArray = [];
+
+    foreach ($dependent_dropdown_elements as $contentType => $fields) {
+      foreach ($fields as $key => $value) {
+        $newArray[$contentType . '/:;' . $key]['field_type'] = $value['field_type'];
+        $newArray[$contentType . '/:;' . $key]['field_label'] = $value['field_label'];
+        $newArray[$contentType . '/:;' . $key]['field_select_values'] = $value['field_select_values'];
+        $newArray[$contentType . '/:;' . $key]['field_ref_type'] = $value['field_ref_type'];
+      }
+    }
+
+    foreach ($newArray as $contentType => $fields) {
+
+      $str = $contentType;
+      $str = explode("/:;", $str);
+
+      // If add new content form.
+      if ($form_id == 'node_' . $str[0] . '_form') {
+
+        if ($fields['field_type'] == 'select') {
+
+          $select_values = explode("\n", $fields['field_select_values']);
+          $select_values_array = [];
+          $select_values_array[''] = '- None -';
+
+          foreach ($select_values as $value) {
+            $select_values_2 = explode("|", $value);
+            $select_values_array[$select_values_2[0]] = $select_values_2[1];
+          }
+
+          $form[$str[1]] = [
+            '#type' => $fields['field_type'],
+            '#title' => $fields['field_label'],
+            '#weight' => 999,
+            '#options' => $select_values_array,
+          ];
+        }
+        elseif ($fields['field_type'] == 'ref_select') {
+
+          $vid = $fields['field_select_values'];
+
+          if ($fields['field_ref_type'] == 'taxonomy') {
+            $term_data = [];
+            $term_data[''] = '- None -';
+            $terms = \Drupal::entityTypeManager()->getStorage('taxonomy_term')->loadTree($vid);
+
+            foreach ($terms as $term) {
+              $term_data[$term->tid] = $term->name;
+            }
+
+          }
+          else {
+            $term_data = [];
+            $term_data[''] = '- None -';
+            $values = [
+              'type' => $vid,
+            ];
+            $terms = \Drupal::entityTypeManager()->getStorage('node')->loadByProperties($values);
+            $term_items = [];
+            if ($terms) {
+              foreach ($terms as $node) {
+                $term_items[] = $node->toArray();
+              }
+            }
+            foreach ($term_items as $term) {
+              $term_data[$term["nid"][0]['value']] = $term["title"][0]['value'];
+            }
+          }
+
+          $form[$str[1]] = [
+            '#type' => 'select',
+            '#title' => $fields['field_label'],
+            '#weight' => 999,
+            '#options' => $term_data,
+          ];
+
+        }
+        else {
+
+          $form[$str[1]] = [
+            '#type' => $fields['field_type'],
+            '#title' => $fields['field_label'],
+            '#weight' => 999,
+          ];
+        }
+      }
+
+      // If edit existing content form.
+      if ($form_id == 'node_' . $str[0] . '_edit_form') {
+
+        if ($fields['field_type'] == 'select') {
+
+          $select_values = explode("\n", $fields['field_select_values']);
+          $select_values_array = [];
+          $select_values_array[''] = '- None -';
+
+          foreach ($select_values as $value) {
+            $select_values_2 = explode("|", $value);
+            $select_values_array[$select_values_2[0]] = $select_values_2[1];
+          }
+
+          $form[$str[1]] = [
+            '#type' => $fields['field_type'],
+            '#title' => $fields['field_label'],
+            '#weight' => 999,
+            '#options' => $select_values_array,
+          ];
+        }
+        elseif ($fields['field_type'] == 'ref_select') {
+
+          $vid = $fields['field_select_values'];
+          $terms = \Drupal::entityTypeManager()->getStorage('taxonomy_term')->loadTree($vid);
+          $term_data[''] = '- None -';
+
+          foreach ($terms as $term) {
+            $term_data[$term->tid] = $term->name;
+          }
+
+          $form[$str[1]] = [
+            '#type' => 'select',
+            '#title' => $fields['field_label'],
+            '#weight' => 999,
+            '#options' => $term_data,
+          ];
+        }
+        else {
+
+          $form[$str[1]] = [
+            '#type' => $fields['field_type'],
+            '#title' => $fields['field_label'],
+            '#weight' => 999,
+          ];
+        }
+
+      }
+    }
+  }
+
+  $dependent_dropdown_config = \Drupal::config('dependent_dropdown.select')->get('dependent_dropdown_select');
+
+  // Add ajax callback to the select fields.
+  if (isset($dependent_dropdown_config)) {
+
+    $newArray = [];
+
+    foreach ($dependent_dropdown_config as $contentType => $fields) {
+      foreach ($fields as $key => $value) {
+        $newArray[$contentType . '/:;' . $key]['dependent_dropdown_url'] = $value['dependent_dropdown_url'];
+        $newArray[$contentType . '/:;' . $key]['dependent_dropdown_dependent'] = $value['dependent_dropdown_dependent'];
+      }
+    }
+
+    foreach ($newArray as $contentType => $fields) {
+
+      $str = $contentType;
+      $str = explode("/:;", $str);
+
+      // If add new content form.
+      if ($form_id == 'node_' . $str[0] . '_form') {
+        $form['dependent_dropdown_content_type'] = [
+          '#type' => 'hidden',
+          '#value' => $str[0],
+        ];
+
+        $form[$str[1] . 'dependent_dropdown_alter_url'] = [
+          '#type' => 'hidden',
+          '#value' => $fields['dependent_dropdown_url'],
+        ];
+
+        $form[$str[1] . 'dependent_dropdown_alter_dependent'] = [
+          '#type' => 'hidden',
+          '#value' => $fields['dependent_dropdown_dependent'],
+        ];
+
+        $form[$str[1] . 'dependent_dropdown_alter_depends_on'] = [
+          '#type' => 'hidden',
+          '#value' => $str[1],
+        ];
+
+        $form['dependent_dropdown_value'] = [
+          '#type' => 'hidden',
+          '#value' => '',
+        ];
+
+        if (!isset($dependent_dropdown_elements[$str[0]][$str[1]])) {
+          $form[$str[1]]['widget']['#ajax'] = [
+            'callback' => 'dependent_dropdown_ajax_select',
+            'event' => 'change',
+            'wrapper'  => $fields['dependent_dropdown_dependent'],
+          ];
+        }
+        else {
+          $form[$str[1]]['#ajax'] = [
+            'callback' => 'dependent_dropdown_ajax_select',
+            'event' => 'change',
+            'wrapper'  => $fields['dependent_dropdown_dependent'],
+          ];
+        }
+
+        $form[$fields['dependent_dropdown_dependent']] += [
+          '#prefix' => '<div id="' . $fields['dependent_dropdown_dependent'] . '">',
+          '#suffix' => '</div>',
+        ];
+
+      }
+
+      // If edit existing content form.
+      if ($form_id == 'node_' . $str[0] . '_edit_form') {
+        $form['dependent_dropdown_content_type'] = [
+          '#type' => 'hidden',
+          '#value' => $str[0],
+        ];
+
+        $form[$str[1] . 'dependent_dropdown_alter_url'] = [
+          '#type' => 'hidden',
+          '#value' => $fields['dependent_dropdown_url'],
+        ];
+
+        $form[$str[1] . 'dependent_dropdown_alter_dependent'] = [
+          '#type' => 'hidden',
+          '#value' => $fields['dependent_dropdown_dependent'],
+        ];
+
+        $form[$str[1] . 'dependent_dropdown_alter_depends_on'] = [
+          '#type' => 'hidden',
+          '#value' => $str[1],
+        ];
+
+        if (!isset($dependent_dropdown_elements[$str[0]][$str[1]])) {
+          $form[$str[1]]['widget']['#ajax'] = [
+            'callback' => 'dependent_dropdown_ajax_select',
+            'event' => 'change',
+            'wrapper'  => $fields['dependent_dropdown_dependent'],
+          ];
+        }
+        else {
+          $form[$str[1]]['#ajax'] = [
+            'callback' => 'dependent_dropdown_ajax_select',
+            'event' => 'change',
+            'wrapper'  => $fields['dependent_dropdown_dependent'],
+          ];
+        }
+
+        $form[$fields['dependent_dropdown_dependent']] += [
+          '#prefix' => '<div id="' . $fields['dependent_dropdown_dependent'] . '">',
+          '#suffix' => '</div>',
+        ];
+      }
+    }
+  }
+
+  $dependent_dropdown_calculate = \Drupal::config('dependent_dropdown.calculate')->get('dependent_dropdown_calculate');
+
+  // Add ajax callback to the number fields.
+  if (isset($dependent_dropdown_calculate)) {
+
+    $newArray = [];
+
+    foreach ($dependent_dropdown_calculate as $contentType => $fields) {
+      foreach ($fields as $key => $value) {
+        $newArray[$contentType . '/:;' . $key]['dependent_dropdown_number1'] = $value['dependent_dropdown_number1'];
+        $newArray[$contentType . '/:;' . $key]['dependent_dropdown_number2'] = $value['dependent_dropdown_number2'];
+        $newArray[$contentType . '/:;' . $key]['dependent_dropdown_operator'] = $value['dependent_dropdown_operator'];
+      }
+    }
+
+    foreach ($newArray as $contentType => $fields) {
+
+      $str = $contentType;
+      $str = explode("/:;", $str);
+
+      // If add new content form.
+      if ($form_id == 'node_' . $str[0] . '_form') {
+
+        $form['#attached']['library'][] = 'core/drupal.ajax';
+
+        $form['dependent_dropdown_content_type'] = [
+          '#type' => 'hidden',
+          '#value' => $str[0],
+        ];
+
+        $form[$str[1] . 'dependent_dropdown_alter_number1'] = [
+          '#type' => 'hidden',
+          '#value' => $fields['dependent_dropdown_number1'],
+        ];
+
+        $form[$str[1] . 'dependent_dropdown_alter_number2'] = [
+          '#type' => 'hidden',
+          '#value' => $fields['dependent_dropdown_number2'],
+        ];
+
+        $form[$str[1] . 'dependent_dropdown_alter_operator'] = [
+          '#type' => 'hidden',
+          '#value' => $fields['dependent_dropdown_operator'],
+        ];
+
+        $form[$str[1] . 'dependent_dropdown_alter_result'] = [
+          '#type' => 'hidden',
+          '#value' => $str[1],
+        ];
+
+        $form['dependent_dropdown_value'] = [
+          '#type' => 'hidden',
+          '#value' => '',
+        ];
+
+        if (isset($dependent_dropdown_elements[$str[0]][$fields['dependent_dropdown_number1']])) {
+          $form[$fields['dependent_dropdown_number1']]['#ajax'] = [
+            'callback' => 'dependent_dropdown_ajax_calculate',
+            'event' => 'change',
+            'wrapper'  => $str[1],
+          ];
+        }
+        else {
+          $form[$fields['dependent_dropdown_number1']]['widget'][0]['value']['#ajax'] = [
+            'callback' => 'dependent_dropdown_ajax_calculate',
+            'event' => 'change',
+            'wrapper'  => $str[1],
+          ];
+        }
+
+        if (isset($dependent_dropdown_elements[$str[0]][$fields['dependent_dropdown_number2']])) {
+          $form[$fields['dependent_dropdown_number2']]['#ajax'] = [
+            'callback' => 'dependent_dropdown_ajax_calculate',
+            'event' => 'change',
+            'wrapper'  => $str[1],
+          ];
+        }
+        else {
+          $form[$fields['dependent_dropdown_number2']]['widget'][0]['value']['#ajax'] = [
+            'callback' => 'dependent_dropdown_ajax_calculate',
+            'event' => 'change',
+            'wrapper'  => $str[1],
+          ];
+        }
+
+        $form[$str[1]] += [
+          '#prefix' => '<div id="' . $str[1] . '">',
+          '#suffix' => '</div>',
+        ];
+      }
+
+      // If edit existing content form.
+      if ($form_id == 'node_' . $str[0] . '_edit_form') {
+        $form['#attached']['library'][] = 'core/drupal.ajax';
+
+        $form['dependent_dropdown_content_type'] = [
+          '#type' => 'hidden',
+          '#value' => $str[0],
+        ];
+
+        $form[$str[1] . 'dependent_dropdown_alter_number1'] = [
+          '#type' => 'hidden',
+          '#value' => $fields['dependent_dropdown_number1'],
+        ];
+
+        $form[$str[1] . 'dependent_dropdown_alter_number2'] = [
+          '#type' => 'hidden',
+          '#value' => $fields['dependent_dropdown_number2'],
+        ];
+
+        $form[$str[1] . 'dependent_dropdown_alter_operator'] = [
+          '#type' => 'hidden',
+          '#value' => $fields['dependent_dropdown_operator'],
+        ];
+
+        $form[$str[1] . 'dependent_dropdown_alter_result'] = [
+          '#type' => 'hidden',
+          '#value' => $str[1],
+        ];
+
+        $form['dependent_dropdown_value'] = [
+          '#type' => 'hidden',
+          '#value' => '',
+        ];
+
+        if (isset($dependent_dropdown_elements[$str[0]][$fields['dependent_dropdown_number1']])) {
+          $form[$fields['dependent_dropdown_number1']]['#ajax'] = [
+            'callback' => 'dependent_dropdown_ajax_calculate',
+            'event' => 'change',
+            'wrapper'  => $str[1],
+          ];
+        }
+        else {
+          $form[$fields['dependent_dropdown_number1']]['widget'][0]['value']['#ajax'] = [
+            'callback' => 'dependent_dropdown_ajax_calculate',
+            'event' => 'change',
+            'wrapper'  => $str[1],
+          ];
+        }
+
+        if (isset($dependent_dropdown_elements[$str[0]][$fields['dependent_dropdown_number2']])) {
+          $form[$fields['dependent_dropdown_number2']]['#ajax'] = [
+            'callback' => 'dependent_dropdown_ajax_calculate',
+            'event' => 'change',
+            'wrapper'  => $str[1],
+          ];
+        }
+        else {
+          $form[$fields['dependent_dropdown_number2']]['widget'][0]['value']['#ajax'] = [
+            'callback' => 'dependent_dropdown_ajax_calculate',
+            'event' => 'change',
+            'wrapper'  => $str[1],
+          ];
+        }
+
+        $form[$str[1]] += [
+          '#prefix' => '<div id="' . $str[1] . '">',
+          '#suffix' => '</div>',
+        ];
+      }
+    }
+  }
+
+}
+
+/**
+ * AJAX callback handler that updates the value of a select field.
+ */
+function dependent_dropdown_ajax_select(array &$form, FormStateInterface $form_state) {
+
+  $eid = $form_state->getValues();
+
+  // Get the field which trigered the callback.
+  $element = $form_state->getTriggeringElement();
+
+  $selected_id = 0;
+
+  // Get the value of the selected element.
+  if ($eid[$eid[$element['#name'] . 'dependent_dropdown_alter_depends_on']][0]['value']) {
+    $selected_id = $eid[$eid[$element['#name'] . 'dependent_dropdown_alter_depends_on']][0]['value'];
+  }
+
+  global $base_url;
+  $client = \Drupal::httpClient();
+
+  $clientIp = \Drupal::request()->getClientIp();
+
+  $path = '/';
+  $alias_manager = \Drupal::service('path.alias_manager');
+  $alias = $alias_manager->getAliasByPath($path);
+  $url = Url::fromUserInput($alias, ['absolute' => TRUE])->toString();
+
+  if (strpos($base_url, 'localhost') !== FALSE) {
+    $url = str_replace("localhost", $clientIp, $url);
+  }
+
+  // Get result from the view rest path.
+  $request = $client->get($url . '/' . str_replace("%", "", $eid[$element['#name'] . 'dependent_dropdown_alter_url']) . $selected_id);
+
+  $response = $request->getBody();
+
+  // Convert json to php array.
+  $rest_body = Json::decode($response);
+  $new_options['_none'] = '- None -';
+
+  foreach ($rest_body as $val) {
+    $new_options[$val['nid']] = $val['title'];
+  }
+
+  $form[$eid[$element['#name'] . 'dependent_dropdown_alter_dependent']]['widget']['#options'] = $new_options;
+
+  $idString = '#' . $eid[$element['#name'] . 'dependent_dropdown_alter_dependent'];
+
+  $response = new AjaxResponse();
+  $response->addCommand(new HtmlCommand($idString, $form[$eid[$element['#name'] . 'dependent_dropdown_alter_dependent']]));
+
+  return $response;
+
+}
+
+/**
+ * AJAX callback handler that updates the value of a number field.
+ */
+function dependent_dropdown_ajax_calculate(array &$form, FormStateInterface $form_state) {
+
+  $response = new AjaxResponse();
+
+  $values = $form_state->getValues();
+
+  // Get the field which trigered the callback.
+  $element = $form_state->getTriggeringElement();
+
+  $dependent_dropdown_calculate = \Drupal::config('dependent_dropdown.calculate')->get('dependent_dropdown_calculate');
+  $dependent_dropdown_results = $dependent_dropdown_calculate[$values['dependent_dropdown_content_type']];
+  $dependent_dropdown_results2 = [];
+
+  foreach ($dependent_dropdown_results as $key => $value) {
+    if (array_search(explode('[0]', $element['#name'])[0], $value)) {
+      $dependent_dropdown_results2[] = $key;
+    }
+  }
+
+  foreach ($dependent_dropdown_results2 as $key => $value) {
+    $dependent_dropdown_number1 = $values[$values[$value . 'dependent_dropdown_alter_number1']][0]['value'];
+    $dependent_dropdown_number2 = $values[$values[$value . 'dependent_dropdown_alter_number2']][0]['value'];
+    $dependent_dropdown_operator = $values[$value . 'dependent_dropdown_alter_operator'];
+    $idString = '#' . $value;
+
+    if ($dependent_dropdown_operator == 'addition') {
+      $result = $dependent_dropdown_number1 + $dependent_dropdown_number2;
+      $form[$value]['widget'][0]['value']['#value'] = $result;
+      $response->addCommand(new HtmlCommand($idString, $form[$value]));
+    }
+
+    if ($dependent_dropdown_operator == 'subtraction') {
+      $result = $dependent_dropdown_number1 - $dependent_dropdown_number2;
+      $form[$value]['widget'][0]['value']['#value'] = $result;
+      $response->addCommand(new HtmlCommand($idString, $form[$value]));
+    }
+
+    if ($dependent_dropdown_operator == 'multiplication') {
+      $result = $dependent_dropdown_number1 * $dependent_dropdown_number2;
+      $form[$value]['widget'][0]['value']['#value'] = $result;
+      $response->addCommand(new HtmlCommand($idString, $form[$value]));
+    }
+
+    if ($dependent_dropdown_operator == 'division') {
+      $result = $dependent_dropdown_number1 / $dependent_dropdown_number2;
+      $form[$value]['widget'][0]['value']['#value'] = $result;
+      $response->addCommand(new HtmlCommand($idString, $form[$value]));
+    }
+  }
+
+  return $response;
+
+}

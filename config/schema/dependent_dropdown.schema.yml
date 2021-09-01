@@ -1,0 +1,74 @@
+dependent_dropdown.select:
+  type: config_object
+  label: 'Dependent Dropdown Select'
+  mapping:
+    dependent_dropdown_select:
+      type: sequence
+      label: 'Dependent Dropdown Select'
+      sequence:
+        type: mapping
+        label: 'Content Types'
+        mapping:
+          dependent_dropdown_depends_on:
+            type: mapping
+            label: 'Depends On'
+            mapping:
+              dependent_dropdown_url:
+                type: string
+                label: 'Value'
+              dependent_dropdown_dependent:
+                type: string
+                label: 'Dependent'
+
+dependent_dropdown.calculate:
+  type: config_object
+  label: 'Dependent Dropdown Calculate'
+  mapping:
+    dependent_dropdown_calculate:
+      type: sequence
+      label: 'Dependent Dropdown Calculate'
+      sequence:
+        type: mapping
+        label: 'Content Types'
+        mapping:
+          dependent_dropdown_result:
+            type: mapping
+            label: 'Result Field'
+            mapping:
+              dependent_dropdown_number1:
+                type: string
+                label: 'First Field'
+              dependent_dropdown_number2:
+                type: string
+                label: 'Second Field'
+              dependent_dropdown_operator:
+                type: string
+                label: 'Operator'
+
+dependent_dropdown.elements:
+  type: config_object
+  label: 'Dependent Dropdown Elements'
+  mapping:
+    dependent_dropdown_elements:
+      type: sequence
+      label: 'Dependent Dropdown Elements'
+      sequence:
+        type: mapping
+        label: 'Content Types'
+        mapping:
+          dependent_dropdown_field:
+            type: mapping
+            label: 'Result Field'
+            mapping:
+              field_type:
+                type: string
+                label: 'Field Type'
+              field_label:
+                type: string
+                label: 'Field Label'
+              field_select_values:
+                type: string
+                label: 'Field Select Values'
+              field_ref_type:
+                type: string
+                label: 'Field Reference Type'
