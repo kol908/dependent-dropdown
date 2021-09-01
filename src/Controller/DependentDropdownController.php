@@ -8,6 +8,7 @@ use Drupal\Core\Entity\EntityTypeManagerInterface;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 use Drupal\Core\Config\ConfigFactory;
 use Drupal\Core\Cache\CacheBackendInterface;
+use Drupal\Core\Url;
 
 /**
  * Provides route responses for the DependentDropdownController.
@@ -66,7 +67,7 @@ class DependentDropdownController extends ControllerBase {
     $node_type_markup .= '<ul>';
 
     foreach ($node_types as $type) {
-      $node_type_markup .= '<li>' . $type->get('name') . ' <a href="/admin/config/dependent-dropdown/fields/' . $type->get('type') . ' "> add </a>' . '</li>';
+      $node_type_markup .= '<li>' . $type->get('name') . ' <a href="' . base_path() . 'admin/config/dependent-dropdown/fields/' . $type->get('type') . ' "> add </a>' . '</li>';
     }
 
     $node_type_markup .= '</ul>';
@@ -89,7 +90,7 @@ class DependentDropdownController extends ControllerBase {
 
     $this->cacheRender->invalidateAll();
 
-    return new RedirectResponse('/admin/config/dependent-dropdown/fields/' . $contentType);
+    return new RedirectResponse(Url::fromRoute('dependent_dropdown.all_fields', ['contentType' => $contentType], [])->toString());
 
   }
 
@@ -107,7 +108,7 @@ class DependentDropdownController extends ControllerBase {
 
     $this->cacheRender->invalidateAll();
 
-    return new RedirectResponse('/admin/config/dependent-dropdown/fields/' . $contentType);
+    return new RedirectResponse(Url::fromRoute('dependent_dropdown.all_fields', ['contentType' => $contentType], [])->toString());
 
   }
 
@@ -125,7 +126,7 @@ class DependentDropdownController extends ControllerBase {
 
     $this->cacheRender->invalidateAll();
 
-    return new RedirectResponse('/admin/config/dependent-dropdown/fields/' . $contentType);
+    return new RedirectResponse(Url::fromRoute('dependent_dropdown.all_fields', ['contentType' => $contentType], [])->toString());
 
   }
 

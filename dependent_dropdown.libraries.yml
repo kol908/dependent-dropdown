@@ -1,0 +1,8 @@
+dependent-dropdown:
+  version: 1.x
+  js:
+    assets/js/dependent_dropdown.js: {}
+  dependencies:
+    - core/jquery
+    - core/jquery.once
+    - core/drupalSettings

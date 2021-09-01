@@ -97,11 +97,13 @@ class DependentDropdownForm extends ConfigFormBase {
       if (!empty($field_definition->getTargetBundle())) {
 
         $specific_widget_type = $form_display->getComponent($field_name);
-        if ($specific_widget_type['type'] == 'options_select') {
-          $bundleFields[$entity_type_id][$field_name]['type'] = $field_definition->getType();
-          $bundleFields[$entity_type_id][$field_name]['label'] = $field_definition->getLabel();
-          $select_list[$field_name] = $bundleFields[$entity_type_id][$field_name]['label'];
-          $counter++;
+        if (isset($specific_widget_type['type'])) {
+          if ($specific_widget_type['type'] == 'options_select') {
+            $bundleFields[$entity_type_id][$field_name]['type'] = $field_definition->getType();
+            $bundleFields[$entity_type_id][$field_name]['label'] = $field_definition->getLabel();
+            $select_list[$field_name] = $bundleFields[$entity_type_id][$field_name]['label'];
+            $counter++;
+          }
         }
       }
     }
@@ -111,11 +113,13 @@ class DependentDropdownForm extends ConfigFormBase {
       if (!empty($field_definition->getTargetBundle())) {
 
         $specific_widget_type = $form_display->getComponent($field_name);
-        if ($specific_widget_type['type'] == 'number') {
-          $bundleFields[$entity_type_id][$field_name]['type'] = $field_definition->getType();
-          $bundleFields[$entity_type_id][$field_name]['label'] = $field_definition->getLabel();
-          $number_list[$field_name] = $bundleFields[$entity_type_id][$field_name]['label'];
-          $counter++;
+        if (isset($specific_widget_type['type'])) {
+          if ($specific_widget_type['type'] == 'number') {
+            $bundleFields[$entity_type_id][$field_name]['type'] = $field_definition->getType();
+            $bundleFields[$entity_type_id][$field_name]['label'] = $field_definition->getLabel();
+            $number_list[$field_name] = $bundleFields[$entity_type_id][$field_name]['label'];
+            $counter++;
+          }
         }
       }
     }
@@ -220,7 +224,7 @@ class DependentDropdownForm extends ConfigFormBase {
 
       foreach ($hook_all_elements[$contentType] as $name => $values) {
         if ($values["field_type"] == 'select' || $values["field_type"] == 'ref_select') {
-          $report .= '<h4>' . $values['field_label'] . ' <a href="/admin/config/delete-hook-element/' . $contentType . '/' . $values["field_type"] . '/' . $name . '" > Delete</a></h4>';
+          $report .= '<h4>' . $values['field_label'] . ' <a href="' . base_path() . 'admin/config/delete-hook-element/' . $contentType . '/' . $values["field_type"] . '/' . $name . '" > Delete</a></h4>';
         }
       }
 
@@ -228,7 +232,7 @@ class DependentDropdownForm extends ConfigFormBase {
 
       foreach ($hook_all_elements[$contentType] as $name => $values) {
         if ($values["field_type"] == 'number') {
-          $report .= '<h4>' . $values['field_label'] . ' <a href="/admin/config/delete-hook-element/' . $contentType . '/' . $values["field_type"] . '/' . $name . '" > Delete</a></h4>';
+          $report .= '<h4>' . $values['field_label'] . ' <a href="' . base_path() . 'admin/config/delete-hook-element/' . $contentType . '/' . $values["field_type"] . '/' . $name . '" > Delete</a></h4>';
         }
       }
     }
@@ -239,7 +243,7 @@ class DependentDropdownForm extends ConfigFormBase {
 
       foreach ($dependent_dropdown_config[$contentType] as $name => $values) {
         if (isset($select_list[$name])) {
-          $report .= '<h4>' . $select_list[$name] . ' <a href="/admin/config/unset-select-field/' . $contentType . '/' . $name . '" > Reset</a></h4>';
+          $report .= '<h4>' . $select_list[$name] . ' <a href="' . base_path() . 'admin/config/unset-select-field/' . $contentType . '/' . $name . '" > Reset</a></h4>';
           $report .= '<p>' . '<b>Rest Export Paths:</b> ' . $values['dependent_dropdown_url'] . '</p>';
           $report .= '<p>' . '<b>Dependent Field:</b> ' . $select_list[$values['dependent_dropdown_dependent']] . '</p>';
         }
@@ -266,7 +270,7 @@ class DependentDropdownForm extends ConfigFormBase {
 
       foreach ($dependent_dropdown_calculate[$contentType] as $name => $values) {
         if (isset($number_list[$name])) {
-          $report .= '<h4>' . $number_list[$name] . ' <a href="/admin/config/unset-number-field/' . $contentType . '/' . $name . '" > Reset</a></h4>';
+          $report .= '<h4>' . $number_list[$name] . ' <a href="' . base_path() . 'admin/config/unset-number-field/' . $contentType . '/' . $name . '" > Reset</a></h4>';
           $report .= '<p>' . '<b>Depends On Field 1:</b> ' . $number_list[$values['dependent_dropdown_number1']] . '</p>';
           $report .= '<p>' . '<b>Depends On Field 2:</b> ' . $number_list[$values['dependent_dropdown_number2']] . '</p>';
           $report .= '<p>' . '<b>Operator:</b> ' . $values['dependent_dropdown_operator'] . '</p>';

@@ -76,8 +76,6 @@ dependent_dropdown.edit_settings:
         type: string
       fieldName:
         type: string
-  options:
-    _admin_route: TRUE
 
 dependent_dropdown.add_fields:
   path: '/admin/config/dependent-dropdown/add-fields/{contentType}'
@@ -90,8 +88,6 @@ dependent_dropdown.add_fields:
     parameters:
       contentType:
         type: string
-  options:
-    _admin_route: TRUE
 
 dependent_dropdown.new_field_settings:
   path: '/admin/config/dependent-dropdown/new-field-settings/{contentType}/{fieldType}'
@@ -106,5 +102,3 @@ dependent_dropdown.new_field_settings:
         type: string
       fieldType:
         type: string
-  options:
-    _admin_route: TRUE
