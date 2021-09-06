@@ -7,7 +7,7 @@ dependent_dropdown.all_content_types:
     _permission: 'administer site configuration'
 
 dependent_dropdown.delete_hook_element:
-  path: '/admin/config/delete-hook-element/{contentType}/{fieldType}/{fieldName}'
+  path: '/admin/config/delete-hook-element/{contentType}/{fieldType}/{fieldName}/{routeName}/{routeParameter}/{routeParameterType}'
   defaults:
     _controller: '\Drupal\dependent_dropdown\Controller\DependentDropdownController::deleteHookElement'
     _title: 'Delete Hook Elements'
@@ -21,9 +21,15 @@ dependent_dropdown.delete_hook_element:
         type: string
       fieldName:
         type: string
+      routeName:
+        type: string
+      routeParameter:
+        type: string
+      routeParameterType:
+        type: string
 
 dependent_dropdown.unset_select_field:
-  path: '/admin/config/unset-select-field/{contentType}/{fieldName}'
+  path: '/admin/config/unset-select-field/{contentType}/{fieldName}/{routeName}/{routeParameter}/{routeParameterType}'
   defaults:
     _controller: '\Drupal\dependent_dropdown\Controller\DependentDropdownController::unsetSelectField'
     _title: 'Delete Hook Elements'
@@ -35,9 +41,15 @@ dependent_dropdown.unset_select_field:
         type: string
       fieldName:
         type: string
+      routeName:
+        type: string
+      routeParameter:
+        type: string
+      routeParameterType:
+        type: string
 
 dependent_dropdown.unset_number_field:
-  path: '/admin/config/unset-number-field/{contentType}/{fieldName}'
+  path: '/admin/config/unset-number-field/{contentType}/{fieldName}/{routeName}/{routeParameter}/{routeParameterType}'
   defaults:
     _controller: '\Drupal\dependent_dropdown\Controller\DependentDropdownController::unsetNumberField'
     _title: 'Delete Hook Elements'
@@ -48,6 +60,12 @@ dependent_dropdown.unset_number_field:
       contentType:
         type: string
       fieldName:
+        type: string
+      routeName:
+        type: string
+      routeParameter:
+        type: string
+      routeParameterType:
         type: string
 
 dependent_dropdown.all_fields:

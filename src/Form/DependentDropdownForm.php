@@ -76,7 +76,7 @@ class DependentDropdownForm extends ConfigFormBase {
   /**
    * {@inheritdoc}
    */
-  public function buildForm(array $form, FormStateInterface $form_state, Request $request = NULL, string $contentType = NULL) {
+  public function buildForm(array $form, FormStateInterface $form_state, string $contentType = NULL) {
 
     $dependent_dropdown_config = $this->configFactory->get('dependent_dropdown.select')->get('dependent_dropdown_select');
     $dependent_dropdown_calculate = $this->configFactory->get('dependent_dropdown.calculate')->get('dependent_dropdown_calculate');
@@ -218,13 +218,27 @@ class DependentDropdownForm extends ConfigFormBase {
 
     $report = '<h1>Report:</h1>';
 
+    $current_path = \Drupal::service('path.current')->getPath();
+    $url_object = \Drupal::service('path.validator')->getUrlIfValid($current_path);
+    $route_name = $url_object->getRouteName();
+    $route_parameters = $url_object->getrouteParameters();
+    $route_node_parameter = '';
+
+    if (isset($route_parameters['node'])) {
+      $route_node_parameter = $route_parameters['node'];
+      $route_node_parameter_type = 'node';
+    } else {
+      $route_node_parameter = $route_parameters['node_type'];
+      $route_node_parameter_type = 'node_type';
+    }
+
     // Show names of fields created via hook alter.
     if (isset($hook_all_elements[$contentType]) && !empty($hook_all_elements[$contentType])) {
       $report .= '<h2>Hook Select Elements:</h2>';
 
       foreach ($hook_all_elements[$contentType] as $name => $values) {
         if ($values["field_type"] == 'select' || $values["field_type"] == 'ref_select') {
-          $report .= '<h4>' . $values['field_label'] . ' <a href="' . base_path() . 'admin/config/delete-hook-element/' . $contentType . '/' . $values["field_type"] . '/' . $name . '" > Delete</a></h4>';
+          $report .= '<h4>' . $values['field_label'] . ' <a href="' . base_path() . 'admin/config/delete-hook-element/' . $contentType . '/' . $values["field_type"] . '/' . $name . '/' . $route_name . '/' . $route_node_parameter  . '/' . $route_node_parameter_type . '" > Delete</a></h4>';
         }
       }
 
@@ -232,7 +246,7 @@ class DependentDropdownForm extends ConfigFormBase {
 
       foreach ($hook_all_elements[$contentType] as $name => $values) {
         if ($values["field_type"] == 'number') {
-          $report .= '<h4>' . $values['field_label'] . ' <a href="' . base_path() . 'admin/config/delete-hook-element/' . $contentType . '/' . $values["field_type"] . '/' . $name . '" > Delete</a></h4>';
+          $report .= '<h4>' . $values['field_label'] . ' <a href="' . base_path() . 'admin/config/delete-hook-element/' . $contentType . '/' . $values["field_type"] . '/' . $name . '/' . $route_name . '/' . $route_node_parameter  . '/' . $route_node_parameter_type . '" > Delete</a></h4>';
         }
       }
     }
@@ -243,7 +257,7 @@ class DependentDropdownForm extends ConfigFormBase {
 
       foreach ($dependent_dropdown_config[$contentType] as $name => $values) {
         if (isset($select_list[$name])) {
-          $report .= '<h4>' . $select_list[$name] . ' <a href="' . base_path() . 'admin/config/unset-select-field/' . $contentType . '/' . $name . '" > Reset</a></h4>';
+          $report .= '<h4>' . $select_list[$name] . ' <a href="' . base_path() . 'admin/config/unset-select-field/' . $contentType . '/' . $name . '/' . $route_name . '/' . $route_node_parameter  . '/' . $route_node_parameter_type . '" > Reset</a></h4>';
           $report .= '<p>' . '<b>Rest Export Paths:</b> ' . $values['dependent_dropdown_url'] . '</p>';
           $report .= '<p>' . '<b>Dependent Field:</b> ' . $select_list[$values['dependent_dropdown_dependent']] . '</p>';
         }
@@ -270,7 +284,7 @@ class DependentDropdownForm extends ConfigFormBase {
 
       foreach ($dependent_dropdown_calculate[$contentType] as $name => $values) {
         if (isset($number_list[$name])) {
-          $report .= '<h4>' . $number_list[$name] . ' <a href="' . base_path() . 'admin/config/unset-number-field/' . $contentType . '/' . $name . '" > Reset</a></h4>';
+          $report .= '<h4>' . $number_list[$name] . ' <a href="' . base_path() . 'admin/config/unset-number-field/' . $contentType . '/' . $name . '/' . $route_name . '/' . $route_node_parameter  . '/' . $route_node_parameter_type . '" > Reset</a></h4>';
           $report .= '<p>' . '<b>Depends On Field 1:</b> ' . $number_list[$values['dependent_dropdown_number1']] . '</p>';
           $report .= '<p>' . '<b>Depends On Field 2:</b> ' . $number_list[$values['dependent_dropdown_number2']] . '</p>';
           $report .= '<p>' . '<b>Operator:</b> ' . $values['dependent_dropdown_operator'] . '</p>';

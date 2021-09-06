@@ -79,7 +79,7 @@ class DependentDropdownController extends ControllerBase {
   /**
    * Function to delete fields create via hook_alter_form.
    */
-  public function deleteHookElement(string $contentType, string $fieldType, string $fieldName) {
+  public function deleteHookElement(string $contentType, string $fieldType, string $fieldName, string $routeName, string $routeParameter, string $routeParameterType) {
 
     $dependent_dropdown_elements = $this->configFactory->get('dependent_dropdown.elements')->get('dependent_dropdown_elements');
     unset($dependent_dropdown_elements[$contentType][$fieldName]);
@@ -90,14 +90,13 @@ class DependentDropdownController extends ControllerBase {
 
     $this->cacheRender->invalidateAll();
 
-    return new RedirectResponse(Url::fromRoute('dependent_dropdown.all_fields', ['contentType' => $contentType], [])->toString());
-
+    return new RedirectResponse(Url::fromRoute($routeName, [$routeParameterType => $routeParameter], [])->toString());
   }
 
   /**
    * Function to unset a select field settings.
    */
-  public function unsetSelectField(string $contentType, string $fieldName) {
+  public function unsetSelectField(string $contentType, string $fieldName, string $routeName, string $routeParameter, string $routeParameterType) {
 
     $dependent_dropdown_select = $this->configFactory->get('dependent_dropdown.select')->get('dependent_dropdown_select');
     unset($dependent_dropdown_select[$contentType][$fieldName]);
@@ -108,14 +107,14 @@ class DependentDropdownController extends ControllerBase {
 
     $this->cacheRender->invalidateAll();
 
-    return new RedirectResponse(Url::fromRoute('dependent_dropdown.all_fields', ['contentType' => $contentType], [])->toString());
+    return new RedirectResponse(Url::fromRoute($routeName, [$routeParameterType => $routeParameter], [])->toString());
 
   }
 
   /**
    * Function to unset a number field settings.
    */
-  public function unsetNumberField(string $contentType, string $fieldName) {
+  public function unsetNumberField(string $contentType, string $fieldName, string $routeName, string $routeParameter, string $routeParameterType) {
 
     $dependent_dropdown_calculate = $this->configFactory->get('dependent_dropdown.calculate')->get('dependent_dropdown_calculate');
     unset($dependent_dropdown_calculate[$contentType][$fieldName]);
@@ -126,7 +125,7 @@ class DependentDropdownController extends ControllerBase {
 
     $this->cacheRender->invalidateAll();
 
-    return new RedirectResponse(Url::fromRoute('dependent_dropdown.all_fields', ['contentType' => $contentType], [])->toString());
+    return new RedirectResponse(Url::fromRoute($routeName, [$routeParameterType => $routeParameter], [])->toString());
 
   }
 
