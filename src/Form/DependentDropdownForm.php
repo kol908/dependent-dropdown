@@ -227,7 +227,9 @@ class DependentDropdownForm extends ConfigFormBase {
     if (isset($route_parameters['node'])) {
       $route_node_parameter = $route_parameters['node'];
       $route_node_parameter_type = 'node';
-    } else {
+    }
+    
+    if (isset($route_parameters['node_type'])) {
       $route_node_parameter = $route_parameters['node_type'];
       $route_node_parameter_type = 'node_type';
     }

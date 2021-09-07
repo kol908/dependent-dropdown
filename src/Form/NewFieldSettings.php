@@ -198,7 +198,7 @@ class NewFieldSettings extends FormBase {
       $values = $form_state->getValues();
 
       $dependent_dropdown_config = $this->configFactory->get('dependent_dropdown.elements')->get('dependent_dropdown_elements');
-      $fieldMachineName = preg_replace('/\s+/', '_', strtolower($values['field_label']));
+      $fieldMachineName = preg_replace('@[^a-z0-9-]+@','_', strtolower($values['field_label']));
       $fieldNames = [];
 
       foreach ($dependent_dropdown_config[$values['content_type']] as $key => $value) {
